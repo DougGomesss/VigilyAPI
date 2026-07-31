@@ -12,11 +12,24 @@ public class VigilanteController : ControllerBase
 {
     private readonly VigilyAPICon _vigily;
     private readonly VigilanteService _VigilanteService;
+    private readonly IConfiguration _configuration;
 
-    public VigilanteController(VigilyAPICon vigily, VigilanteService vigilanteService)
+    public VigilanteController(VigilyAPICon vigily, VigilanteService vigilanteService, IConfiguration c)  
     {
         _vigily = vigily;
         _VigilanteService = vigilanteService;
+        _configuration = c;
+    }
+
+    [HttpGet("caçandovariaveis")]
+    public ActionResult<string> GetVariaveis()
+    {
+        string res = _configuration["chave1"];
+        string res2 = _configuration["chave2"];
+        string secao1 = _configuration["secao:valor1"];
+
+        return $"chave 1 {res} \n \n chave2 {res2} \n \n secao1 : chave é {secao1}";
+
     }
 
     [HttpGet]
@@ -45,7 +58,6 @@ public class VigilanteController : ControllerBase
             return vigilante;
     }
 
-
     [HttpPost]
     public ActionResult Post(VigilanteDTO vigilante)
     {
@@ -55,7 +67,7 @@ public class VigilanteController : ControllerBase
             "ObterVigilantePorID",
             new { id = teste.VigilanteId },
             teste
-        ); // <- retona 201
+        );
     }
 
     [HttpPut("{cpf:regex(^\\d{{11}}$)}")]

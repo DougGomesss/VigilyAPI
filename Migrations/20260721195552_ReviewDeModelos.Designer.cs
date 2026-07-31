@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VigilyAPI.Context;
 
@@ -11,9 +12,11 @@ using VigilyAPI.Context;
 namespace VigilyAPI.Migrations
 {
     [DbContext(typeof(VigilyAPICon))]
-    partial class VigilyAPIConModelSnapshot : ModelSnapshot
+    [Migration("20260721195552_ReviewDeModelos")]
+    partial class ReviewDeModelos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

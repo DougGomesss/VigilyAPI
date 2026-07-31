@@ -70,7 +70,7 @@ public class EmpresaService
             Cnpj = dto.Cnpj,
             Email = dto.Email,
             Telefone = dto.Telefone,
-            Senha = dto.Senha
+            Senha = dto.Senha,
         };
 
         _vigily.Empresa.Add(empresa);

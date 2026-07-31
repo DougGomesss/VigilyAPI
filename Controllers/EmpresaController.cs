@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.EntityFrameworkCore;
 using VigilyAPI.Context;
 using VigilyAPI.DTOs;
+using VigilyAPI.Interfaces;
 using VigilyAPI.Models;
 using VigilyAPI.Services;
 
@@ -19,9 +22,17 @@ public class EmpresaController : ControllerBase
         _EmpresaService = empresaService;
     }
 
-    [HttpGet]
-    public ActionResult<IEnumerable<Empresa>> GetEmpresa()
+    [HttpGet("UsandoFromServices/{nome}")]
+    public ActionResult<IEnumerable<Empresa>> GetEmpresa(IMeuService servico, string nome)
     {
+        return Ok($"Esse é o meu servico : {servico.Saldacao(nome)}");
+    }
+
+    [HttpGet("GetAllPorSync")]
+    public ActionResult<IEnumerable<Empresa>> GetService()
+    {
+
+        throw new Exception("Problemas na requisicao");
         var lista = _EmpresaService.GetEmpresas();
         if (lista == null || !lista.Any())
         {
@@ -30,16 +41,40 @@ public class EmpresaController : ControllerBase
         return Ok(lista);
     }
 
+    [HttpGet("GetAllPorAsync")]
+    public async Task<ActionResult<IEnumerable<Empresa>>> GetEmpresaAsync()
+    {
+        return await _vigily.Empresa.AsNoTracking().ToListAsync();
+    }
+
+    Action<string> log = Console.WriteLine;
+
     [HttpGet("{id:int:min(1)}", Name = "ObterEmpresaPorID")]
-    public ActionResult<Empresa> GetPorID(int id)
+    public ActionResult<Empresa> GetPorID(int id, [BindRequired] string nome)
     {
         Empresa empresa = _EmpresaService.GetEmpresaPorID(id);
+        log(nameof(nome));
         if (empresa == null)
         {
             return NotFound("empresa não encontrada");
         }
         else
             return empresa;
+    }
+
+    [HttpGet("{values:alpha:min(14):max(14)}", Name = "GetAllWithIActionResult")]
+    public IActionResult GetTeste2(string values)
+    {
+        Empresa emp = _vigily.Empresa.Where(x => x.Cnpj == values).FirstOrDefault();
+        if (emp != null)
+        {
+            return Ok(values);
+        }
+        else
+        {
+            return new ObjectResult(values);
+            return NotFound($"Empresa do CNPJ {emp.Cnpj} <- nao encontrado");
+        }
     }
 
     [HttpPost]

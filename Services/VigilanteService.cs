@@ -71,16 +71,18 @@ public class VigilanteService
         var vigilanteFinal = new Vigilante
         {
             Nome = vigilante.Nome,
+            Cpf = vigilante.Cpf,
             Email = vigilante.Email,
             Telefone = vigilante.Telefone,
             Cidade = vigilante.Cidade,
             Estado = vigilante.Estado,
             UrlImagemPerfil = vigilante.UrlImagemPerfil,
             Senha = vigilante.Senha,
+            Idade = vigilante.Idade,
         };
 
         _vigily.Vigilante.Add(vigilanteFinal);
-        _vigily.SaveChanges(); // <- presistir na tabela
+        _vigily.SaveChanges();
         return vigilanteFinal;
     }
 }

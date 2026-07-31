@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VigilyAPI.Context;
 
@@ -11,9 +12,11 @@ using VigilyAPI.Context;
 namespace VigilyAPI.Migrations
 {
     [DbContext(typeof(VigilyAPICon))]
-    partial class VigilyAPIConModelSnapshot : ModelSnapshot
+    [Migration("20260717155133_CorrigindoNullable")]
+    partial class CorrigindoNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,10 +54,6 @@ namespace VigilyAPI.Migrations
                     b.Property<string>("Telefone")
                         .IsRequired()
                         .HasColumnType("longtext");
-
-                    b.Property<string>("UrlImagemPerfil")
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
 
                     b.HasKey("EmpresaId");
 
@@ -112,9 +111,6 @@ namespace VigilyAPI.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<int>("Idade")
-                        .HasColumnType("int");
-
                     b.Property<string>("Nome")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -129,6 +125,7 @@ namespace VigilyAPI.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("UrlImagemPerfil")
+                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
 
