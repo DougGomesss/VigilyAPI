@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using VigilyAPI.Context;
 using VigilyAPI.DTOs;
+using VigilyAPI.Filters;
 using VigilyAPI.Interfaces;
 using VigilyAPI.Models;
 using VigilyAPI.Services;
@@ -22,17 +23,10 @@ public class EmpresaController : ControllerBase
         _EmpresaService = empresaService;
     }
 
-    [HttpGet("UsandoFromServices/{nome}")]
-    public ActionResult<IEnumerable<Empresa>> GetEmpresa(IMeuService servico, string nome)
-    {
-        return Ok($"Esse é o meu servico : {servico.Saldacao(nome)}");
-    }
-
     [HttpGet("GetAllPorSync")]
+    [ServiceFilter(typeof(ApiLogginFilter))]
     public ActionResult<IEnumerable<Empresa>> GetService()
     {
-
-        throw new Exception("Problemas na requisicao");
         var lista = _EmpresaService.GetEmpresas();
         if (lista == null || !lista.Any())
         {
@@ -72,7 +66,6 @@ public class EmpresaController : ControllerBase
         }
         else
         {
-            return new ObjectResult(values);
             return NotFound($"Empresa do CNPJ {emp.Cnpj} <- nao encontrado");
         }
     }

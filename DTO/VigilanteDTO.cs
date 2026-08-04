@@ -3,7 +3,7 @@ using VigilyAPI.Validations;
 
 namespace VigilyAPI.DTOs;
 
-public class VigilanteDTO : IValidatableObject
+public class VigilanteDTO
 {
     [Required]
     [StringLength(80)]
@@ -40,9 +40,4 @@ public class VigilanteDTO : IValidatableObject
 
     [Compare("Senha", ErrorMessage = "Divergencias de senha")]
     public string ConfirmarSenha { get; set; }
-
-    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-    {
-        throw new NotImplementedException();
-    }
 }

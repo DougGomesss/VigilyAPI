@@ -4,7 +4,10 @@ namespace VigilyAPI.Validations
 {
     public class PrimeiraLetraMaiusculaAttribute : ValidationAttribute
     {
-        protected override ValidationResult IsValid(object value,ValidationContext validationContext)
+        protected override ValidationResult IsValid(
+            object value,
+            ValidationContext validationContext
+        )
         {
             if (value == null || string.IsNullOrEmpty(value.ToString()))
             {

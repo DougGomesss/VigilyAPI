@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using VigilyAPI.Context;
 using VigilyAPI.DTOs;
+using VigilyAPI.Interfaces;
 using VigilyAPI.Models;
 
 namespace VigilyAPI.Services;
@@ -8,10 +9,24 @@ namespace VigilyAPI.Services;
 public class VigilanteService
 {
     private readonly VigilyAPICon _vigily;
+    private readonly IPasswordHasher _passwordHasher;
 
-    public VigilanteService(VigilyAPICon contexto)
+    public VigilanteService(VigilyAPICon contexto, IPasswordHasher passwordHasher)
     {
         _vigily = contexto;
+        _passwordHasher = passwordHasher;
+    }
+
+    public async Task<Vigilante> Login(string cpf, string senhaDigitada)
+    {
+        var vigilante = await _vigily.Vigilante.FirstOrDefaultAsync(x => x.Cpf == cpf);
+
+        if (vigilante == null || !_passwordHasher.Verify(vigilante.Senha, senhaDigitada))
+        {
+            throw new UnauthorizedAccessException("CPF ou senha invalidos");
+        }
+
+        return vigilante;
     }
 
     public Vigilante PutVigilante(string cpf, Vigilante vigilante)
@@ -29,7 +44,7 @@ public class VigilanteService
         vig.Cidade = vigilante.Cidade;
         vig.Estado = vigilante.Estado;
         vig.UrlImagemPerfil = vigilante.UrlImagemPerfil;
-        vig.Senha = vigilante.Senha;
+        vig.Senha = _passwordHasher.Hash(vigilante.Senha);
 
         _vigily.Entry(vig).State = EntityState.Modified;
         _vigily.SaveChanges();
@@ -77,12 +92,13 @@ public class VigilanteService
             Cidade = vigilante.Cidade,
             Estado = vigilante.Estado,
             UrlImagemPerfil = vigilante.UrlImagemPerfil,
-            Senha = vigilante.Senha,
+            Senha = _passwordHasher.Hash(vigilante.Senha),
             Idade = vigilante.Idade,
         };
 
         _vigily.Vigilante.Add(vigilanteFinal);
         _vigily.SaveChanges();
+
         return vigilanteFinal;
     }
 }

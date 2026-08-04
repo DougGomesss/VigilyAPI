@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using VigilyAPI.Context;
+using VigilyAPI.DTO;
 using VigilyAPI.DTOs;
 using VigilyAPI.Models;
 using VigilyAPI.Services;
@@ -12,24 +14,11 @@ public class VigilanteController : ControllerBase
 {
     private readonly VigilyAPICon _vigily;
     private readonly VigilanteService _VigilanteService;
-    private readonly IConfiguration _configuration;
 
-    public VigilanteController(VigilyAPICon vigily, VigilanteService vigilanteService, IConfiguration c)  
+    public VigilanteController(VigilyAPICon vigily, VigilanteService vigilanteService)
     {
         _vigily = vigily;
         _VigilanteService = vigilanteService;
-        _configuration = c;
-    }
-
-    [HttpGet("caçandovariaveis")]
-    public ActionResult<string> GetVariaveis()
-    {
-        string res = _configuration["chave1"];
-        string res2 = _configuration["chave2"];
-        string secao1 = _configuration["secao:valor1"];
-
-        return $"chave 1 {res} \n \n chave2 {res2} \n \n secao1 : chave é {secao1}";
-
     }
 
     [HttpGet]
@@ -44,6 +33,22 @@ public class VigilanteController : ControllerBase
         {
             return lista;
         }
+    }
+
+
+    [HttpPost("Login")]
+    public async Task<ActionResult> LoginVigilante(LoginDTO login)
+    {
+        var vigilante = await _VigilanteService.Login(login.Login, login.Senha);
+        return Ok(
+            new
+            {
+                vigilante.VigilanteId,
+                vigilante.Nome,
+                vigilante.Cpf,
+                vigilante.Email,
+            }
+        );
     }
 
     [HttpGet("{id:int:min(1)}", Name = "ObterVigilantePorID")]
