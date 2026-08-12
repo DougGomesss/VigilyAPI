@@ -18,7 +18,7 @@ builder
         x.Filters.Add(typeof(ApiExceptionFilter));
     })
     .AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
-builder.Services.AddScoped<EmpresaService>();
+builder.Services.AddScoped<VigilyAPI.Services.EmpresaService>();
 builder.Services.AddScoped<VigilanteService>();
 builder.Services.AddScoped<ApiLogginFilter>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
@@ -31,6 +31,7 @@ builder.Services.AddDbContext<VigilyAPICon>(o =>
 });
 
 builder.Services.AddTransient<IMeuService, MeuServico>();
+builder.Services.AddTransient<IEmpresaService, IEmpresaService>();
 
 var app = builder.Build();
 

@@ -1,17 +1,22 @@
 using Microsoft.EntityFrameworkCore;
+
 using VigilyAPI.Context;
 using VigilyAPI.DTOs;
+using VigilyAPI.Interfaces;
 using VigilyAPI.Models;
 
 namespace VigilyAPI.Services;
 
-public class EmpresaService
+public class EmpresaService : IEmpresaService
 {
     private readonly VigilyAPICon _vigily;
+    private readonly IPasswordHasher _passwordHasher;
 
-    public EmpresaService(VigilyAPICon contexto)
+    public EmpresaService(VigilyAPICon contexto, IPasswordHasher passwordHasher)
     {
         _vigily = contexto;
+        _passwordHasher = passwordHasher;
+
     }
 
     public Empresa AtualizarEmpresa(string cnpj, Empresa empresa)
@@ -26,7 +31,7 @@ public class EmpresaService
         empr.Nome = empresa.Nome;
         empr.Email = empresa.Email;
         empr.Telefone = empresa.Telefone;
-        empr.Senha = empresa.Senha;
+        empr.Senha = _passwordHasher.Hash(empresa.Senha);
 
         _vigily.Entry(empr).State = EntityState.Modified;
         _vigily.SaveChanges();
@@ -70,7 +75,7 @@ public class EmpresaService
             Cnpj = dto.Cnpj,
             Email = dto.Email,
             Telefone = dto.Telefone,
-            Senha = dto.Senha,
+            Senha = _passwordHasher.Hash(dto.Senha),
         };
 
         _vigily.Empresa.Add(empresa);

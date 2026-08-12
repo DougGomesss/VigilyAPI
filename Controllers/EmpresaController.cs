@@ -15,19 +15,17 @@ namespace VigilyAPI.Controllers;
 public class EmpresaController : ControllerBase
 {
     private readonly VigilyAPICon _vigily;
-    private readonly EmpresaService _EmpresaService;
 
-    public EmpresaController(VigilyAPICon vigily, EmpresaService empresaService)
+    public EmpresaController(VigilyAPICon vigily)
     {
         _vigily = vigily;
-        _EmpresaService = empresaService;
     }
 
     [HttpGet("GetAllPorSync")]
     [ServiceFilter(typeof(ApiLogginFilter))]
-    public ActionResult<IEnumerable<Empresa>> GetService()
+    public ActionResult<IEnumerable<Empresa>> GetService(IEmpresaService empresaService)
     {
-        var lista = _EmpresaService.GetEmpresas();
+        var lista = empresaService.GetEmpresas();
         if (lista == null || !lista.Any())
         {
             return NotFound("Nenhuma empresa encontrada");
@@ -41,13 +39,11 @@ public class EmpresaController : ControllerBase
         return await _vigily.Empresa.AsNoTracking().ToListAsync();
     }
 
-    Action<string> log = Console.WriteLine;
 
     [HttpGet("{id:int:min(1)}", Name = "ObterEmpresaPorID")]
-    public ActionResult<Empresa> GetPorID(int id, [BindRequired] string nome)
+    public ActionResult<Empresa> GetPorID(IEmpresaService empresaService,int id)
     {
-        Empresa empresa = _EmpresaService.GetEmpresaPorID(id);
-        log(nameof(nome));
+        Empresa empresa = empresaService.GetEmpresaPorID(id);
         if (empresa == null)
         {
             return NotFound("empresa não encontrada");
@@ -71,17 +67,17 @@ public class EmpresaController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult Post(EmpresaDTO empresa)
+    public ActionResult Post(IEmpresaService empresaService,EmpresaDTO empresa)
     {
-        var res = _EmpresaService.Post(empresa);
+        var res = empresaService.Post(empresa);
         Empresa criada = _vigily.Empresa.Where(x => x.EmpresaId == res.EmpresaId).First();
         return new CreatedAtRouteResult("ObterEmpresaPorID", new { id = criada.EmpresaId }, criada);
     }
 
     [HttpPut("{cnpj:regex(^\\d{{14}}$)}")]
-    public ActionResult Put(string cnpj, Empresa empresa)
+    public ActionResult Put(IEmpresaService empresaService,string cnpj, Empresa empresa)
     {
-        var empresaBanco = _EmpresaService.AtualizarEmpresa(cnpj, empresa);
+        var empresaBanco = empresaService.AtualizarEmpresa(cnpj, empresa);
 
         if (empresaBanco == null)
         {

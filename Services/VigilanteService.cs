@@ -6,7 +6,7 @@ using VigilyAPI.Models;
 
 namespace VigilyAPI.Services;
 
-public class VigilanteService
+public class VigilanteService : IVigilanteService
 {
     private readonly VigilyAPICon _vigily;
     private readonly IPasswordHasher _passwordHasher;

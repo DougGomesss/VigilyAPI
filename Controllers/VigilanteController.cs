@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using VigilyAPI.Context;
 using VigilyAPI.DTO;
 using VigilyAPI.DTOs;
+using VigilyAPI.Interfaces;
 using VigilyAPI.Models;
 using VigilyAPI.Services;
 
@@ -13,18 +13,16 @@ namespace VigilyAPI.Controllers;
 public class VigilanteController : ControllerBase
 {
     private readonly VigilyAPICon _vigily;
-    private readonly VigilanteService _VigilanteService;
 
-    public VigilanteController(VigilyAPICon vigily, VigilanteService vigilanteService)
+    public VigilanteController(VigilyAPICon vigily)
     {
         _vigily = vigily;
-        _VigilanteService = vigilanteService;
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<Vigilante>> GetVigilantes()
+    public ActionResult<IEnumerable<Vigilante>> GetVigilantes(IVigilanteService vigilanteService)
     {
-        var lista = _VigilanteService.GetVigilantes();
+        var lista = vigilanteService.GetVigilantes();
         if (lista == null || lista.Count() == 0)
         {
             return BadRequest();
@@ -37,9 +35,9 @@ public class VigilanteController : ControllerBase
 
 
     [HttpPost("Login")]
-    public async Task<ActionResult> LoginVigilante(LoginDTO login)
+    public async Task<ActionResult> LoginVigilante(IVigilanteService vigilanteService,LoginDTO login)
     {
-        var vigilante = await _VigilanteService.Login(login.Login, login.Senha);
+        Vigilante vigilante = await vigilanteService.Login(login.Login, login.Senha);
         return Ok(
             new
             {
@@ -52,9 +50,9 @@ public class VigilanteController : ControllerBase
     }
 
     [HttpGet("{id:int:min(1)}", Name = "ObterVigilantePorID")]
-    public ActionResult<Vigilante> GetPorID(int id)
+    public ActionResult<Vigilante> GetPorID(IVigilanteService vigilanteService,int id)
     {
-        Vigilante vigilante = _VigilanteService.GetVigilanteByID(id);
+        Vigilante vigilante = vigilanteService.GetVigilanteByID(id);
         if (vigilante == null)
         {
             return NotFound("vigilante não encontrado");
@@ -64,9 +62,9 @@ public class VigilanteController : ControllerBase
     }
 
     [HttpPost]
-    public ActionResult Post(VigilanteDTO vigilante)
+    public ActionResult Post(IVigilanteService vigilanteService,VigilanteDTO vigilante)
     {
-        var res = _VigilanteService.PostVigilante(vigilante);
+        var res = vigilanteService.PostVigilante(vigilante);
         Vigilante teste = _vigily.Vigilante.Where(x => x.VigilanteId == res.VigilanteId).First();
         return new CreatedAtRouteResult(
             "ObterVigilantePorID",
@@ -76,9 +74,9 @@ public class VigilanteController : ControllerBase
     }
 
     [HttpPut("{cpf:regex(^\\d{{11}}$)}")]
-    public ActionResult Put(string cpf, Vigilante vigilante)
+    public ActionResult Put(IVigilanteService vigilanteService,string cpf, Vigilante vigilante)
     {
-        var vigilanteBanco = _VigilanteService.PutVigilante(cpf, vigilante);
+        var vigilanteBanco = vigilanteService.PutVigilante(cpf, vigilante);
 
         if (vigilanteBanco == null)
         {
