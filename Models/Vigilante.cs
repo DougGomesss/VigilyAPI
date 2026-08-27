@@ -44,5 +44,10 @@ public class Vigilante
     [StringLength(200)]
     public string UrlImagemPerfil { get; set; }
 
+    [StringLength(200)]
+    public string RefreshToken { get; set; }
+
+    public DateTime? RefreshTokenExpiryTime { get; set; }
+
     public ICollection<ListaSolicitacao> Solicitacoes { get; set; }
 }

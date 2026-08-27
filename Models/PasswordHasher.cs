@@ -5,7 +5,6 @@ namespace VigilyAPI.Models
 {
     public class PasswordHasher : IPasswordHasher
     {
-
         private const int SaltSize = 128 / 8;
 
         private const int KeySize = 256 / 8;
@@ -19,8 +18,11 @@ namespace VigilyAPI.Models
             byte[] salt = RandomNumberGenerator.GetBytes(SaltSize);
             byte[] hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, _hashAlg, KeySize);
 
-            return string.Join(Delimiter,Convert.ToBase64String(salt),Convert.ToBase64String(hash));
-
+            return string.Join(
+                Delimiter,
+                Convert.ToBase64String(salt),
+                Convert.ToBase64String(hash)
+            );
         }
 
         public bool Verify(string passwordHash, string inputPassword)
@@ -34,7 +36,13 @@ namespace VigilyAPI.Models
             byte[] salt = Convert.FromBase64String(partes[0]);
             byte[] hash = Convert.FromBase64String(partes[1]);
 
-            byte[] inputHash = Rfc2898DeriveBytes.Pbkdf2(inputPassword, salt, Iterations, _hashAlg, KeySize);
+            byte[] inputHash = Rfc2898DeriveBytes.Pbkdf2(
+                inputPassword,
+                salt,
+                Iterations,
+                _hashAlg,
+                KeySize
+            );
 
             return CryptographicOperations.FixedTimeEquals(hash, inputHash);
         }

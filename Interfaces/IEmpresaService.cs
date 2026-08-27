@@ -1,13 +1,14 @@
-﻿using VigilyAPI.DTOs;
+using VigilyAPI.DTOs;
 using VigilyAPI.Models;
 
 namespace VigilyAPI.Interfaces
 {
     public interface IEmpresaService
     {
-        public Empresa AtualizarEmpresa(string cnpj, Empresa empresa);
-        public IEnumerable<Empresa> GetEmpresas();
-        public Empresa GetEmpresaPorID(int id);
-        public Empresa Post(EmpresaDTO dto);
+        public Task<Empresa> LoginAsync(string cnpj, string senhaDigitada);
+        public Task<Empresa> AtualizarEmpresaAsync(string cnpj, Empresa empresa);
+        public Task<IEnumerable<Empresa>> GetEmpresasAsync();
+        public Task<Empresa> GetEmpresaPorCNPJAsync(string cnpj);
+        public Task<Empresa> PostAsync(EmpresaDTO dto);
     }
 }

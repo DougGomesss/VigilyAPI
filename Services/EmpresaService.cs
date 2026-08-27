@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-
 using VigilyAPI.Context;
 using VigilyAPI.DTOs;
 using VigilyAPI.Interfaces;
@@ -16,12 +15,23 @@ public class EmpresaService : IEmpresaService
     {
         _vigily = contexto;
         _passwordHasher = passwordHasher;
-
     }
 
-    public Empresa AtualizarEmpresa(string cnpj, Empresa empresa)
+    public async Task<Empresa> LoginAsync(string cnpj, string senhaDigitada)
     {
-        Empresa empr = _vigily.Empresa.FirstOrDefault(x => x.Cnpj == cnpj);
+        var empresa = await _vigily.Empresa.FirstOrDefaultAsync(x => x.Cnpj == cnpj);
+
+        if (empresa == null || !_passwordHasher.Verify(empresa.Senha, senhaDigitada))
+        {
+            throw new UnauthorizedAccessException("CNPJ ou senha invalidos");
+        }
+
+        return empresa;
+    }
+
+    public async Task<Empresa> AtualizarEmpresaAsync(string cnpj, Empresa empresa)
+    {
+        Empresa empr = await _vigily.Empresa.FirstOrDefaultAsync(x => x.Cnpj == cnpj);
 
         if (empr == null)
         {
@@ -34,27 +44,25 @@ public class EmpresaService : IEmpresaService
         empr.Senha = _passwordHasher.Hash(empresa.Senha);
 
         _vigily.Entry(empr).State = EntityState.Modified;
-        _vigily.SaveChanges();
+        await _vigily.SaveChangesAsync();
 
         return empr;
     }
 
-    public IEnumerable<Empresa> GetEmpresas()
+    public async Task<IEnumerable<Empresa>> GetEmpresasAsync()
     {
-        var lista = _vigily.Empresa.Take(10).AsNoTracking().ToList();
+        var lista = await _vigily.Empresa.Take(10).AsNoTracking().ToListAsync();
         if (lista == null || lista.Count() == 0)
         {
             return null;
         }
-        else
-        {
-            return lista;
-        }
+
+        return lista;
     }
 
-    public Empresa GetEmpresaPorID(int id)
+    public async Task<Empresa> GetEmpresaPorCNPJAsync(string cnpj)
     {
-        var empresa = _vigily.Empresa.Where(x => x.EmpresaId == id).FirstOrDefault();
+        var empresa = await _vigily.Empresa.Where(x => x.Cnpj == cnpj).FirstOrDefaultAsync();
         if (empresa == null)
         {
             return null;
@@ -62,7 +70,7 @@ public class EmpresaService : IEmpresaService
         return empresa;
     }
 
-    public Empresa Post(EmpresaDTO dto)
+    public async Task<Empresa> PostAsync(EmpresaDTO dto)
     {
         if (dto == null)
         {
@@ -79,7 +87,7 @@ public class EmpresaService : IEmpresaService
         };
 
         _vigily.Empresa.Add(empresa);
-        _vigily.SaveChanges();
+        await _vigily.SaveChangesAsync();
         return empresa;
     }
 }

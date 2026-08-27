@@ -1,5 +1,5 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.EntityFrameworkCore;
 using VigilyAPI.Context;
 using VigilyAPI.DTOs;
@@ -21,29 +21,24 @@ public class EmpresaController : ControllerBase
         _vigily = vigily;
     }
 
-    [HttpGet("GetAllPorSync")]
+    [HttpGet("ListaEmpresas")]
     [ServiceFilter(typeof(ApiLogginFilter))]
-    public ActionResult<IEnumerable<Empresa>> GetService(IEmpresaService empresaService)
+    [Authorize(Roles = "Vigilante")]
+    public async Task<ActionResult<IEnumerable<Empresa>>> GetEmpresaAsync(IEmpresaService empresaService)
     {
-        var lista = empresaService.GetEmpresas();
-        if (lista == null || !lista.Any())
+        IEnumerable<Empresa> listaEmpresa = await empresaService.GetEmpresasAsync();
+
+        if (listaEmpresa == null || !listaEmpresa.Any())
         {
             return NotFound("Nenhuma empresa encontrada");
         }
-        return Ok(lista);
+        return Ok(listaEmpresa);
     }
 
-    [HttpGet("GetAllPorAsync")]
-    public async Task<ActionResult<IEnumerable<Empresa>>> GetEmpresaAsync()
+    [HttpGet("{cnpj:regex(^\\d{{14}}$)}", Name = "ObterEmpresaPorCNPJ")]
+    public async Task<ActionResult<Empresa>> GetPorCNPJAsync(IEmpresaService empresaService, string cnpj)
     {
-        return await _vigily.Empresa.AsNoTracking().ToListAsync();
-    }
-
-
-    [HttpGet("{id:int:min(1)}", Name = "ObterEmpresaPorID")]
-    public ActionResult<Empresa> GetPorID(IEmpresaService empresaService,int id)
-    {
-        Empresa empresa = empresaService.GetEmpresaPorID(id);
+        Empresa empresa = await empresaService.GetEmpresaPorCNPJAsync(cnpj);
         if (empresa == null)
         {
             return NotFound("empresa não encontrada");
@@ -52,32 +47,18 @@ public class EmpresaController : ControllerBase
             return empresa;
     }
 
-    [HttpGet("{values:alpha:min(14):max(14)}", Name = "GetAllWithIActionResult")]
-    public IActionResult GetTeste2(string values)
-    {
-        Empresa emp = _vigily.Empresa.Where(x => x.Cnpj == values).FirstOrDefault();
-        if (emp != null)
-        {
-            return Ok(values);
-        }
-        else
-        {
-            return NotFound($"Empresa do CNPJ {emp.Cnpj} <- nao encontrado");
-        }
-    }
-
     [HttpPost]
-    public ActionResult Post(IEmpresaService empresaService,EmpresaDTO empresa)
+    public async Task<ActionResult> PostAsync(IEmpresaService empresaService, EmpresaDTO empresa)
     {
-        var res = empresaService.Post(empresa);
-        Empresa criada = _vigily.Empresa.Where(x => x.EmpresaId == res.EmpresaId).First();
-        return new CreatedAtRouteResult("ObterEmpresaPorID", new { id = criada.EmpresaId }, criada);
+        var res = await empresaService.PostAsync(empresa);
+        Empresa criada = await _vigily.Empresa.Where(x => x.EmpresaId == res.EmpresaId).FirstAsync();
+        return new CreatedAtRouteResult("ObterEmpresaPorCNPJ", new { cnpj = criada.Cnpj }, criada);
     }
 
     [HttpPut("{cnpj:regex(^\\d{{14}}$)}")]
-    public ActionResult Put(IEmpresaService empresaService,string cnpj, Empresa empresa)
+    public async Task<ActionResult> PutAsync(IEmpresaService empresaService, string cnpj, Empresa empresa)
     {
-        var empresaBanco = empresaService.AtualizarEmpresa(cnpj, empresa);
+        var empresaBanco = await empresaService.AtualizarEmpresaAsync(cnpj, empresa);
 
         if (empresaBanco == null)
         {
@@ -88,16 +69,23 @@ public class EmpresaController : ControllerBase
     }
 
     [HttpDelete("{id:int:min(1)}")]
-    public ActionResult Delete(int id)
+    public async Task<ActionResult> DeleteAsync(int id)
     {
-        var empresa = _vigily.Empresa.Find(id);
+        var empresa = await _vigily.Empresa.FindAsync(id);
 
         if (empresa == null)
         {
             return NotFound($"empresa com o id {id} não foi encontrado");
         }
+
+        var possuiSolicitacoes = await _vigily.ListaSolicitacoes.AnyAsync(x => x.Empresa.EmpresaId == id);
+        if (possuiSolicitacoes)
+        {
+            return Conflict($"não é possível excluir: existem solicitações vinculadas à empresa com o id {id}");
+        }
+
         _vigily.Empresa.Remove(empresa);
-        _vigily.SaveChanges();
+        await _vigily.SaveChangesAsync();
         return Ok($"Empresa com o id {id} excluido com sucesso");
     }
 }

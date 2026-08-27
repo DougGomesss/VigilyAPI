@@ -1,10 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using VigilyAPI.Context;
-using VigilyAPI.DTO;
 using VigilyAPI.DTOs;
 using VigilyAPI.Interfaces;
 using VigilyAPI.Models;
-using VigilyAPI.Services;
 
 namespace VigilyAPI.Controllers;
 
@@ -20,9 +20,9 @@ public class VigilanteController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<Vigilante>> GetVigilantes(IVigilanteService vigilanteService)
+    public async Task<ActionResult<IEnumerable<Vigilante>>> GetVigilantesAsync(IVigilanteService vigilanteService)
     {
-        var lista = vigilanteService.GetVigilantes();
+        var lista = await vigilanteService.GetVigilantesAsync();
         if (lista == null || lista.Count() == 0)
         {
             return BadRequest();
@@ -33,26 +33,10 @@ public class VigilanteController : ControllerBase
         }
     }
 
-
-    [HttpPost("Login")]
-    public async Task<ActionResult> LoginVigilante(IVigilanteService vigilanteService,LoginDTO login)
-    {
-        Vigilante vigilante = await vigilanteService.Login(login.Login, login.Senha);
-        return Ok(
-            new
-            {
-                vigilante.VigilanteId,
-                vigilante.Nome,
-                vigilante.Cpf,
-                vigilante.Email,
-            }
-        );
-    }
-
     [HttpGet("{id:int:min(1)}", Name = "ObterVigilantePorID")]
-    public ActionResult<Vigilante> GetPorID(IVigilanteService vigilanteService,int id)
+    public async Task<ActionResult<Vigilante>> GetPorIDAsync(IVigilanteService vigilanteService, int id)
     {
-        Vigilante vigilante = vigilanteService.GetVigilanteByID(id);
+        Vigilante vigilante = await vigilanteService.GetVigilanteByIDAsync(id);
         if (vigilante == null)
         {
             return NotFound("vigilante não encontrado");
@@ -61,22 +45,33 @@ public class VigilanteController : ControllerBase
             return vigilante;
     }
 
-    [HttpPost]
-    public ActionResult Post(IVigilanteService vigilanteService,VigilanteDTO vigilante)
+    [HttpGet("busca", Name = "ObterVigilantePorNome")]
+    public async Task<ActionResult<IEnumerable<Vigilante>>> GetPorNomeAsync(IVigilanteService vigilanteService, [FromQuery] string nome)
     {
-        var res = vigilanteService.PostVigilante(vigilante);
-        Vigilante teste = _vigily.Vigilante.Where(x => x.VigilanteId == res.VigilanteId).First();
+        var lista = await vigilanteService.GetVigilantePorNomeAsync(nome);
+        if (lista == null || !lista.Any())
+        {
+            return NotFound("nenhum vigilante encontrado com esse nome");
+        }
+        return Ok(lista);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult> PostVigilanteAsync(IVigilanteService vigilanteService, VigilanteDTO vigilante)
+    {
+        var res = await vigilanteService.PostVigilanteAsync(vigilante);
+        Vigilante teste = await _vigily.Vigilante.Where(x => x.VigilanteId == res.VigilanteId).FirstAsync();
         return new CreatedAtRouteResult(
-            "ObterVigilantePorID",
-            new { id = teste.VigilanteId },
+            "ObterVigilantePorNome",
+            new { nome = teste.Nome },
             teste
         );
     }
 
     [HttpPut("{cpf:regex(^\\d{{11}}$)}")]
-    public ActionResult Put(IVigilanteService vigilanteService,string cpf, Vigilante vigilante)
+    public async Task<ActionResult> PutVigilanteAsync(IVigilanteService vigilanteService, string cpf, Vigilante vigilante)
     {
-        var vigilanteBanco = vigilanteService.PutVigilante(cpf, vigilante);
+        var vigilanteBanco = await vigilanteService.PutVigilanteAsync(cpf, vigilante);
 
         if (vigilanteBanco == null)
         {
@@ -87,15 +82,22 @@ public class VigilanteController : ControllerBase
     }
 
     [HttpDelete("{id:int:min(1)}")]
-    public ActionResult Delete(int id)
+    public async Task<ActionResult> DeleteVigilanteAsync(int id)
     {
-        var vigilante = _vigily.Vigilante.Where(x => x.VigilanteId == id).FirstOrDefault();
+        var vigilante = await _vigily.Vigilante.Where(x => x.VigilanteId == id).FirstOrDefaultAsync();
         if (vigilante == null)
         {
             return NotFound($"vigilante com o id {id} não foi encontrado");
         }
+
+        var possuiSolicitacoes = await _vigily.ListaSolicitacoes.AnyAsync(x => x.Vigilante.VigilanteId == id);
+        if (possuiSolicitacoes)
+        {
+            return Conflict($"não é possível excluir: existem solicitações vinculadas ao vigilante com o id {id}");
+        }
+
         _vigily.Vigilante.Remove(vigilante);
-        _vigily.SaveChanges();
+        await _vigily.SaveChangesAsync();
         return Ok($"Vigilante com o id {id} excluido com sucesso");
     }
 }

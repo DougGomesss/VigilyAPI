@@ -12,8 +12,8 @@ using VigilyAPI.Context;
 namespace VigilyAPI.Migrations
 {
     [DbContext(typeof(VigilyAPICon))]
-    [Migration("20260721195552_ReviewDeModelos")]
-    partial class ReviewDeModelos
+    [Migration("20260819175030_PopulandoVigilantes")]
+    partial class PopulandoVigilantes
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -122,6 +122,13 @@ namespace VigilyAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(80)
                         .HasColumnType("varchar(80)");
+
+                    b.Property<string>("RefreshToken")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime?>("RefreshTokenExpiryTime")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Senha")
                         .IsRequired()

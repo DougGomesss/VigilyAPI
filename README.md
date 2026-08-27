@@ -22,8 +22,8 @@ O produto foi pensado para ser simples e direto: empresa encontra vigilante, sol
 
 **Pré-requisitos:**
 
-- .NET 9 SDK instalado
-- MySQL rodando localmente
+- .NET 9 SDK
+- MySQL;
 
 **1.Crie o `appsettings.json` e Configure a connection string :**
 
@@ -76,6 +76,16 @@ https://localhost:{porta}/scalar/v1
 
 ## Tecnologias usadas
 
-- Data Annotations
-- Migrations
-- SOLID
+- **Entity Framework Core** + **Pomelo** (MySQL) — ORM e migrations
+- **Scalar** — documentação/teste dos endpoints
+- **JWT Bearer Authentication/Authorization** — autenticação e autorização via token
+- **Refresh Token** — renovação de sessão sem novo login
+- **Data Annotations** — validação de DTOs/Models
+- **Dependency Injection** — container nativo do ASP.NET Core
+- **Action Filters** — logging e tratamento de exceção por filtro
+- **Global Exception Handling (middleware)** — tratamento centralizado de erros
+- **Service Layer** — separação de regra de negócio em services com interface
+- **DTO pattern** — objetos de entrada/saída separados dos Models
+- **Hash de senha (PBKDF2)** — `Rfc2898DeriveBytes` com salt
+- **Refit** — client HTTP tipado para integrações externas
+- **SOLID** (Não 100%)

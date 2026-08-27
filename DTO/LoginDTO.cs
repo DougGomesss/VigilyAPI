@@ -4,9 +4,10 @@ namespace VigilyAPI.DTO
 {
     public class LoginDTO
     {
-        [Required]
+        [Required(ErrorMessage = "Username is required")]
         public string Login { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "Password is required")]
         public string Senha { get; set; }
     }
 }

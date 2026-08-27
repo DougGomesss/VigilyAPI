@@ -1,18 +1,15 @@
-﻿using VigilyAPI.DTOs;
+using VigilyAPI.DTOs;
 using VigilyAPI.Models;
 
 namespace VigilyAPI.Interfaces
 {
     public interface IVigilanteService
     {
-        public Task<Vigilante> Login(string cpf, string senhaDigitada);
-
-        public Vigilante PutVigilante(string cpf, Vigilante vigilante);
-
-        public List<Vigilante> GetVigilantes();
-
-        public Vigilante GetVigilanteByID(int id);
-
-        public Vigilante PostVigilante(VigilanteDTO vigilante, int id = 0);
+        public Task<Vigilante> LoginAsync(string cpf, string senhaDigitada);
+        public Task<Vigilante> PutVigilanteAsync(string cpf, Vigilante vigilante);
+        public Task<List<Vigilante>> GetVigilantesAsync();
+        public Task<Vigilante> GetVigilanteByIDAsync(int id);
+        public Task<List<Vigilante>> GetVigilantePorNomeAsync(string nome);
+        public Task<Vigilante> PostVigilanteAsync(VigilanteDTO vigilante, int id = 0);
     }
 }

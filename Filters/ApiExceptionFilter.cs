@@ -25,9 +25,9 @@ namespace VigilyAPI.Filters
                 return;
             }
 
-            _logger.LogError(x.Exception, $"Ocorreu um exceção nao tratada: status 500");
+            _logger.LogError(x.Exception, $"Ocorreu um exceção nao tratada: {StatusCodes.Status500InternalServerError}");
 
-            x.Result = new ObjectResult("Ocorreu um erro ao tratar sua solicitação")
+            x.Result = new ObjectResult($"{x.Exception.Message}")
             {
                 StatusCode = StatusCodes.Status500InternalServerError,
             };

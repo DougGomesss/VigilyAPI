@@ -17,7 +17,7 @@ public class VigilanteService : IVigilanteService
         _passwordHasher = passwordHasher;
     }
 
-    public async Task<Vigilante> Login(string cpf, string senhaDigitada)
+    public async Task<Vigilante> LoginAsync(string cpf, string senhaDigitada)
     {
         var vigilante = await _vigily.Vigilante.FirstOrDefaultAsync(x => x.Cpf == cpf);
 
@@ -29,9 +29,9 @@ public class VigilanteService : IVigilanteService
         return vigilante;
     }
 
-    public Vigilante PutVigilante(string cpf, Vigilante vigilante)
+    public async Task<Vigilante> PutVigilanteAsync(string cpf, Vigilante vigilante)
     {
-        var vig = _vigily.Vigilante.FirstOrDefault(x => x.Cpf == cpf);
+        var vig = await _vigily.Vigilante.FirstOrDefaultAsync(x => x.Cpf == cpf);
 
         if (vig == null)
         {
@@ -47,14 +47,14 @@ public class VigilanteService : IVigilanteService
         vig.Senha = _passwordHasher.Hash(vigilante.Senha);
 
         _vigily.Entry(vig).State = EntityState.Modified;
-        _vigily.SaveChanges();
+        await _vigily.SaveChangesAsync();
 
         return vig;
     }
 
-    public List<Vigilante> GetVigilantes()
+    public async Task<List<Vigilante>> GetVigilantesAsync()
     {
-        var lista = _vigily.Vigilante.Take(10).AsNoTracking().ToList();
+        var lista = await _vigily.Vigilante.Take(10).AsNoTracking().ToListAsync();
 
         if (lista == null || lista.Count() == 0)
         {
@@ -66,9 +66,9 @@ public class VigilanteService : IVigilanteService
         }
     }
 
-    public Vigilante GetVigilanteByID(int id)
+    public async Task<Vigilante> GetVigilanteByIDAsync(int id)
     {
-        var empresa = _vigily.Vigilante.Where(x => x.VigilanteId == id).FirstOrDefault();
+        var empresa = await _vigily.Vigilante.Where(x => x.VigilanteId == id).FirstOrDefaultAsync();
         if (empresa == null)
         {
             return null;
@@ -76,7 +76,24 @@ public class VigilanteService : IVigilanteService
         return empresa;
     }
 
-    public Vigilante PostVigilante(VigilanteDTO vigilante, int id = 0)
+    public async Task<List<Vigilante>> GetVigilantePorNomeAsync(string nome)
+    {
+        var lista = await _vigily
+            .Vigilante.Where(x => EF.Functions.Like(x.Nome, $"%{nome}%"))
+            .AsNoTracking()
+            .ToListAsync();
+
+        if (lista == null || lista.Count() == 0)
+        {
+            return null;
+        }
+        else
+        {
+            return lista;
+        }
+    }
+
+    public async Task<Vigilante> PostVigilanteAsync(VigilanteDTO vigilante, int id = 0)
     {
         if (vigilante == null)
         {
@@ -97,7 +114,7 @@ public class VigilanteService : IVigilanteService
         };
 
         _vigily.Vigilante.Add(vigilanteFinal);
-        _vigily.SaveChanges();
+        await _vigily.SaveChangesAsync();
 
         return vigilanteFinal;
     }
